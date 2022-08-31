@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_netflix/widget/box_slider.dart';
 import 'package:flutter_netflix/widget/carousel_slider.dart';
@@ -13,56 +14,44 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Movie> movies = [
-    Movie.fromMap({
-      'title': '사랑의 불시착',
-      'keyword': '사랑/로맨스/판타지',
-      'poster': 'test_movie_1.png',
-      'like': false,
-    }),
-    Movie.fromMap({
-      'title': '사랑의 불시착',
-      'keyword': '사랑/로맨스/판타지',
-      'poster': 'test_movie_1.png',
-      'like': false,
-    }),
-    Movie.fromMap({
-      'title': '사랑의 불시착',
-      'keyword': '사랑/로맨스/판타지',
-      'poster': 'test_movie_1.png',
-      'like': false,
-    }),
-    Movie.fromMap({
-      'title': '사랑의 불시착',
-      'keyword': '사랑/로맨스/판타지',
-      'poster': 'test_movie_1.png',
-      'like': false,
-    }),
-  ];
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  late Stream<QuerySnapshot> streamData;
 
   @override
   void initState() {
     super.initState();
+    streamData = firestore.collection('movie').snapshots();
+  }
+
+  Widget _fetchData(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('movie').snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            // 데이터를 못 가져왔을때 로딩바
+            return const LinearProgressIndicator();
+          }
+
+          // 데이터가 있다면 실제 위젯을 가져옴
+          return _buildBody(context, snapshot.data!.docs);
+        });
+  }
+
+  Widget _buildBody(BuildContext context, List<DocumentSnapshot> snapshot) {
+    List<Movie> movies = snapshot.map((d) => Movie.fromSnapshot(d)).toList();
+
+    return ListView(children: [
+      Stack(
+        children: [CarouselImage(movies: movies), const TopBar()],
+      ),
+      CircleSlider(movies: movies),
+      BoxSlider(movies: movies)
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        Stack(
-          children: <Widget>[
-            const TopBar(),
-            CarouselImage(movies: movies),
-          ],
-        ),
-        CircleSlider(
-          movies: movies,
-        ),
-        BoxSlider(
-          movies: movies,
-        ),
-      ],
-    );
+    return _fetchData(context);
   }
 }
 
