@@ -2,3 +2,4 @@ flutter_netflix/lib/firebase_options.dart
 flutter_netflix/ios/Runner/GoogleService-Info.plist
 flutter_netflix/ios/firebase_app_id_file.json
 flutter_netflix/android/app/google-services.json
+flutter_netflix/.vscode/settings.json
